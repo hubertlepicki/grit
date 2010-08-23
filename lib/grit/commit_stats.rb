@@ -30,7 +30,8 @@ module Grit
     #
     # Returns assoc array [sha, Grit::Commit[] (baked)]
     def self.find_all(repo, ref, options = {})
-      allowed_options = [:max_count, :skip, :since]
+      allowed_options = [:max_count, :skip, :since, :filename_regexp]
+      filename_regexp = options.delete(:filename_regexp)
 
       default_options = {:numstat => true}
       actual_options = default_options.merge(options)
@@ -41,7 +42,7 @@ module Grit
         output = repo.git.log(actual_options.merge(:all => true))
       end
 
-      self.list_from_string(repo, output)
+      self.list_from_string(repo, output, filename_regexp)
     end
 
     # Parse out commit information into an array of baked Commit objects
@@ -49,7 +50,7 @@ module Grit
     #   +text+ is the text output from the git command (raw format)
     #
     # Returns assoc array [sha, Grit::Commit[] (baked)]
-    def self.list_from_string(repo, text)
+    def self.list_from_string(repo, text, filename_regexp = nil)
       lines = text.split("\n")
 
       commits = []
@@ -72,7 +73,9 @@ module Grit
           additions = additions.to_i
           deletions = deletions.to_i
           total = additions + deletions
-          files << [filename, additions, deletions, total]
+          if filename_regexp.nil? || filename =~ filename_regexp
+            files << [filename, additions, deletions, total]
+          end
         end
 
         lines.shift while lines.first && lines.first.empty?

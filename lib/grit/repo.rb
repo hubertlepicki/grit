@@ -200,9 +200,10 @@ module Grit
       [ Head.find_all(self), Tag.find_all(self), Remote.find_all(self) ].flatten
     end
 
-    def commit_stats(start = 'master', max_count = 10, skip = 0)
+    def commit_stats(start = 'master', max_count = 10, skip = 0, filename_regexp = nil)
       options = {:max_count => max_count,
-                 :skip => skip}
+                 :skip => skip,
+                 :filename_regexp => filename_regexp}
 
       CommitStats.find_all(self, start, options)
     end
